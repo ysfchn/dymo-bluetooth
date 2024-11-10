@@ -1,0 +1,42 @@
+[project]
+name = "dymo-bluetooth"
+version = "0.0.1"
+authors = [{ name = "ysfchn" }]
+license.file = "LICENSE"
+readme = "README.md"
+classifiers = [
+    "Private :: Do Not Upload"
+]
+dependencies = [
+    "bleak~=0.22.2",
+    "pillow~=11.0.0"
+]
+optional-dependencies.full = ["python-barcode[images]~=0.15.1"]
+requires-python = ">=3.10,<3.12"
+
+[project.urls]
+"GitHub" = "https://github.com/ysfchn/dymo-bluetooth"
+
+[tool.setuptools]
+packages = ["dymo_bluetooth"]
+
+[tool.rye]
+dev-dependencies = [
+    "ruff~=0.0.290"
+]
+
+[build-system]
+requires = [
+    "setuptools>=61",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.basedpyright]
+venvPath = "."
+venv = ".venv"
+reportDeprecated = "none"
+typeCheckingMode = "standard"
+reportOptionalMemberAccess = "warning"
+reportOptionalIterable = "none"
+pythonPlatform = "All"
