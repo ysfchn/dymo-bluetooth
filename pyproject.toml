@@ -12,10 +12,13 @@ dependencies = [
     "pillow~=11.0.0"
 ]
 optional-dependencies.full = ["python-barcode[images]~=0.15.1"]
-requires-python = ">=3.10,<3.12"
+requires-python = ">=3.10"
 
 [project.urls]
 "GitHub" = "https://github.com/ysfchn/dymo-bluetooth"
+
+[project.scripts]
+dymo_bluetooth = "dymo_bluetooth.__main__:main"
 
 [tool.setuptools]
 packages = ["dymo_bluetooth"]
