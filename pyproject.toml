@@ -17,6 +17,9 @@ requires-python = ">=3.10"
 [project.urls]
 "GitHub" = "https://github.com/ysfchn/dymo-bluetooth"
 
+[project.scripts]
+dymo_bluetooth = "dymo_bluetooth.__main__:main"
+
 [tool.setuptools]
 packages = ["dymo_bluetooth"]
 
