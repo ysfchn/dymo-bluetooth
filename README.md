@@ -83,7 +83,7 @@ This printer uses Bluetooth LE (GATT) to send labels & retrieve its status. It d
 
 `2b3d` part in the UUID may not be future-proof, but so far all produced printers of the same model seems to share the same UUID.
 
-To discover the nearby printers, filter for the service UUID or/and check for the MAC address range. This printer has a MAC address in range of `58:CF:79:00:00:00` and `58:CF:79:FF:FF:FF`, which this MAC range block seems to be owned by Espressif Inc. according to Bluetooth vendor list.
+To discover the nearby printers, filter for the service UUID or/and check for the MAC address range. This printer has a MAC address in range of `58:CF:79:00:00:00` and `58:CF:79:FF:FF:FF` or `DC:54:75:00:00:00` and `DC:54:75:FF:FF:FF`, which these MAC ranges block seems to be owned by Espressif Inc. according to Bluetooth vendor list.
 
 All data structures are explained below so it can be used as a future reference.
 

@@ -50,6 +50,11 @@ def is_espressif(mac : str):
     mac_value = int(mac.replace(":", ""), base = 16)
     if (mac_value >= start_block) and (mac_value < end_block):
         return True
+    start_block = 0xDC_54_75 << 24
+    end_block = start_block + (1 << 24) # Exclusive
+    mac_value = int(mac.replace(":", ""), base = 16)
+    if (mac_value >= start_block) and (mac_value < end_block):
+        return True
     return False
 
 
