@@ -5,6 +5,10 @@ authors = [{ name = "ysfchn" }]
 license.file = "LICENSE"
 readme = "README.md"
 classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Printing",
     "Private :: Do Not Upload"
 ]
 dependencies = [

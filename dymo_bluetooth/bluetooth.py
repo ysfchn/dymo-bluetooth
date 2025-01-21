@@ -41,20 +41,22 @@ PRINT_REPLY_UUID = "be3dd652-{uuid}-42f1-99c1-f0f749dd0678".format(uuid = "2b3d"
 UNKNOWN_UUID = "be3dd653-{uuid}-42f1-99c1-f0f749dd0678".format(uuid = "2b3d")
 
 
-def is_espressif(mac : str):
+def is_espressif(input_mac : str):
     """
-    Returns True if given MAC address is in the range of Espressif Inc.
+    Returns True if given MAC address is from a valid DYMO printer.
+    The mac address blocks are owned by Espressif Inc.
     """
-    start_block = 0x58_CF_79 << 24
-    end_block = start_block + (1 << 24) # Exclusive
-    mac_value = int(mac.replace(":", ""), base = 16)
-    if (mac_value >= start_block) and (mac_value < end_block):
-        return True
-    start_block = 0xDC_54_75 << 24
-    end_block = start_block + (1 << 24) # Exclusive
-    mac_value = int(mac.replace(":", ""), base = 16)
-    if (mac_value >= start_block) and (mac_value < end_block):
-        return True
+    mac_blocks = [
+        "58:CF:79",
+        # Confirmed in pull request #2
+        "DC:54:75"
+    ]
+    check_mac = int(input_mac.replace(":", ""), base = 16)
+    for mac in mac_blocks:
+        start_block = int(mac.replace(":", ""), base = 16) << 24
+        end_block = start_block + (1 << 24) # Exclusive
+        if (check_mac >= start_block) and (check_mac < end_block):
+            return True
     return False
 
 

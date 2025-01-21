@@ -18,17 +18,25 @@ The label dimensions are 12 millimeter in height, however the printable area is 
 
 </details>
 
+## Compatibility
+
+* DYMO LetraTag LT-200B
+
+Seems to be this is the only printer by DYMO that uses Bluetooth. If you know or own a DYMO printer that you believe needs to be supported, don't hesitate to open a new issue.
+
+This project depends on [`bleak`](https://pypi.org/project/bleak/) for Bluetooth communication, therefore you can only use this project on system where `bleak` is supported. Thus, either; Linux distribution with BlueZ >= 5.43 support, MacOS with at least version 10.11 or Windows build 16299 or greater is required.
+
 ## Installation
 
 ```
 python -m pip install --upgrade https://github.com/ysfchn/dymo-bluetooth/archive/refs/heads/main.zip
 ```
 
-Python 3.10 or up is targeted, but 3.9 should work too. It depends on `bleak` for Bluetooth communication, and `pillow` for importing images from files. If `python-barcode` is installed, it can be used to print barcodes.
+Python 3.10 or up is targeted, but 3.9 should work too. It depends on `bleak` for Bluetooth communication, and `pillow` for importing images from files. If `python-barcode` is installed (optional), it can be used to print barcodes.
 
 ## Usage
 
-There is a small CLI to print image files in a nearby printer.
+There is a small CLI to print image files to a nearby printer.
 
 ```
 python -m dymo_bluetooth --help
@@ -49,7 +57,7 @@ async def main():
 
     # Images needs to be stretched by at least 2 times like
     # how its mobile app does, otherwise printer will render
-    # the labels too thin.
+    # the labels too narrow.
     canvas = canvas.stretch_image(2)
 
     # Get a list of printers.
@@ -62,7 +70,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## Disclaimer
+## License & Disclaimer
 
 This program is licensed under [MIT License](./LICENSE).
 
@@ -101,7 +109,7 @@ DIRECTIVE[2] = 1B + COMMAND_TYPE[1]
 |  Command  |  Character  | = Code point (hex) | = Code point (decimal) |  Notes  |
 |:------:|:-------------------:|:------------------:|:------------:|:-------:|
 | [`START`](#start-command) | `s` | `0x73` | `115` | Start command. Each payload starts with this directive. |
-| [`MEDIA_TYPE`](#media_type-command) | `M` | `0x4d` | `77` | ? |
+| [`MEDIA_TYPE`](#media_type-command) | `M` | `0x4d` | `77` |  |
 | [`PRINT_DENSITY`](#print_density-command) | `C` | `0x43` | `67` | Seems unused. |
 | [`PRINT_DATA`](#print_data-command) | `D` | `0x44` | `68` | Defines the image that will be printed, see below for byte format. |
 | [`FORM_FEED`](#form_feed-command) | `E` | `0x45` | `69` | Follows after `PRINT_DATA`. |
@@ -125,7 +133,7 @@ This command follows with 1 byte containing a number of some type (?) to be set 
 When this number has set to anything, the printer should advertise this number when searching for Bluetooth devices nearby. (not tested) So I guess it was planned to be used for some sort of casette checking & changing casette type, so printer can hold this value even when its turned off.
 
 ```
-MEDIA_TYPE[3] = DIRECTIVE[2] + ??
+MEDIA_TYPE[3] = DIRECTIVE[2] + XX
 ```
 
 #### `PRINT_DENSITY` command
@@ -236,7 +244,7 @@ The ninth byte of the header is the checksum of the header, and it is calculated
 ```
 PARTIAL_HEADER[8] = FF F0 + MAGIC[2] + PAYLOAD_LENGTH[4]
 
-CHECKSUM = SUM(PARTIAL_HEADER) & 0xFF
+CHECKSUM[1] = SUM(PARTIAL_HEADER) & 0xFF
 
 HEADER[9] = PARTIAL_HEADER[8] + CHECKSUM
 ```
@@ -256,13 +264,13 @@ Chunking needs to be start right after [`HEADER`](#header), so only the header i
 Each chunk must contain its index before chunk data itself followed by. The chunk data can be smaller than 500, but it can only contain maximum 500 bytes, inclusive. In the end, you will have the full chunk to be sent over Bluetooth which contains the index and the data.
 
 ```
-CHUNK[0...501] = CHUNK_INDEX[1] + CHUNK_DATA[0...500]
+CHUNK[1...501] = CHUNK_INDEX[1] + CHUNK_DATA[0...500]
 ```
 
 The last chunk must contain the [`MAGIC`](#magic-value) value appended end of the chunk.
 
 ```
-CHUNK[0...503] = CHUNK_INDEX[1] + CHUNK_DATA[0...500] + MAGIC[2]
+CHUNK[1...503] = CHUNK_INDEX[1] + CHUNK_DATA[0...500] + MAGIC[2]
 ```
 
 #### Set media type

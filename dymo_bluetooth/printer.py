@@ -121,7 +121,7 @@ class Canvas:
 
         # Get the byte containing the pixel value of given coordinates.
         x_offset = math.ceil((x * Canvas.HEIGHT) / 8)
-        y_offset = 3 - math.floor(y / 8)
+        y_offset = ((self.HEIGHT) // 8) - 1 - math.floor(y / 8)
         self.buffer.seek(x_offset + y_offset)
 
         # Check if there is a bit value in given line.
@@ -142,7 +142,7 @@ class Canvas:
 
         # Get the byte containing the pixel value of given coordinates.
         x_offset = math.ceil((x * Canvas.HEIGHT) / 8)
-        y_offset = 3 - math.floor(y / 8)
+        y_offset = ((self.HEIGHT) // 8) - 1 - math.floor(y / 8)
         self.buffer.seek(x_offset + y_offset)
 
         # Get the one of four slices in line in the given coordinates. Add the bit in
@@ -208,7 +208,7 @@ class Canvas:
         """
         self.buffer.seek(0, SEEK_END)
         cur = self.buffer.tell()
-        return math.ceil(cur / 4)
+        return math.ceil(cur / (self.HEIGHT // 8))
 
     def get_size(self):
         """
@@ -222,7 +222,7 @@ class Canvas:
         """
         self.buffer.seek(0)
         image = self.buffer.read()
-        return image + (b"\x00" * (self.buffer.tell() % 4))
+        return image + (b"\x00" * (self.buffer.tell() % (self.HEIGHT // 8)))
 
     def empty(self):
         """
