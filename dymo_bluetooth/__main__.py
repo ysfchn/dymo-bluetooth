@@ -26,6 +26,7 @@ from typing import cast
 from dymo_bluetooth.bluetooth import discover_printers, create_image
 import sys
 import asyncio
+import os
 
 async def print_image(
     input_file : Path, 
@@ -46,7 +47,7 @@ async def print_image(
 
 
 def main():
-    module_name = cast(str, sys.modules[__name__].__file__).split("/")[-2]
+    module_name = cast(str, sys.modules[__name__].__file__).split(os.sep)[-2]
     args = ArgumentParser(
         prog = f"python -m {module_name}",
         description = (
