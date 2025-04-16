@@ -14,7 +14,7 @@ _The image on the printed label shown in the picture can be found [here.](https:
 
 This printer doesn't use inks, it instead writes on the labels with thermal. And obviously, it does require a label cartridge (or called "casette"). From what I've seen, all LetraTag branded label casettes have the same same shape and dimensions, so it is easy to get another if the casette that came with the printer runs out. There are different kind of labels (paper, plastic, metalic etc.) available, and all of them are self-adhesive. The casettes don't have an electronical part, which makes the printer to be able to use casettes manufactured by someone else.
 
-The label dimensions are 12 millimeter in height, however the printable area is just 32 pixels, so labels will have an very obvious white space even if all printable space is filled with black. The print resolution is 200 DPI and, as stated on the original website, it has a print speed of up to 7 millimeters per second. So unfortunately the print resolution is not perfect for everything, but still, it does its job, and in the end, I enjoyed playing around with this printer, even if it was too simple.
+The label dimensions are 12 millimeter in height, however the printable area is just 32 pixels, so labels will have an very obvious white space even if all printable space is filled with black. The print resolution is 200 DPI and, as stated on the original website, it has a print speed of up to 7 millimeters per second. So unfortunately the print resolution is not perfect for everything, but still, it does its job, and in the end, I enjoyed playing around with this printer, even if it didn't have anything that extraordinary.
 
 </details>
 
@@ -22,9 +22,9 @@ The label dimensions are 12 millimeter in height, however the printable area is 
 
 * DYMO LetraTag LT-200B
 
-Seems to be this is the only printer by DYMO that uses Bluetooth. If you know or own a DYMO printer that you believe needs to be supported, don't hesitate to open a new issue.
+Seems to be this is the only printer by DYMO that uses Bluetooth. If you know or own a DYMO printer that uses Bluetooth and you believe needs to be supported, don't hesitate to open a new issue.
 
-This project depends on [`bleak`](https://pypi.org/project/bleak/) for Bluetooth communication, therefore you can only use this project on system where `bleak` is supported. Thus, either; Linux distribution with BlueZ >= 5.43 support, MacOS with at least version 10.11 or Windows build 16299 or greater is required.
+This project depends on [`bleak`](https://pypi.org/project/bleak/) for cross-platform Bluetooth communication, therefore you can only use this project on system where `bleak` is supported. Thus, either; Linux distribution with BlueZ >= 5.43 support, MacOS with at least version 10.11 or Windows build 16299 or greater is required.
 
 ## Installation
 
@@ -32,7 +32,12 @@ This project depends on [`bleak`](https://pypi.org/project/bleak/) for Bluetooth
 python -m pip install --upgrade https://github.com/ysfchn/dymo-bluetooth/archive/refs/heads/main.zip
 ```
 
-Python 3.10 or up is targeted, but 3.9 should work too. It depends on `bleak` for Bluetooth communication, and `pillow` for importing images from files. If `python-barcode` is installed (optional), it can be used to print barcodes.
+Python 3.10 or up is targeted, but 3.9 should work too. It depends on;
+
+* `bleak` for Bluetooth communication.
+* `pillow` for importing & converting images to monochrome images.
+
+Additionally, if `python-barcode` is installed (which is optional), it can be also used to print barcodes.
 
 ## Usage
 
@@ -91,7 +96,7 @@ This printer uses Bluetooth LE (GATT) to send labels & retrieve its status. It d
 
 `2b3d` part in the UUID may not be future-proof, but so far all produced printers of the same model seems to share the same UUID.
 
-To discover the nearby printers, filter for the service UUID or/and check for the MAC address range. This printer has a MAC address in range of `58:CF:79:00:00:00` and `58:CF:79:FF:FF:FF` or `DC:54:75:00:00:00` and `DC:54:75:FF:FF:FF`, which these MAC ranges block seems to be owned by Espressif Inc. according to Bluetooth vendor list.
+To discover the nearby printers, you can filter for the service UUID. So far the MAC addresses to which this printer is assigned seem to belong to the chip manufacturer itself; Espressif, so it may not be possible to pinpoint a DYMO printer by its MAC address, but this project contains a list of MAC prefixes that seen with the printer anyway.
 
 All data structures are explained below so it can be used as a future reference.
 
@@ -109,9 +114,9 @@ DIRECTIVE[2] = 1B + COMMAND_TYPE[1]
 |  Command  |  Character  | = Code point (hex) | = Code point (decimal) |  Notes  |
 |:------:|:-------------------:|:------------------:|:------------:|:-------:|
 | [`START`](#start-command) | `s` | `0x73` | `115` | Start command. Each payload starts with this directive. |
-| [`MEDIA_TYPE`](#media_type-command) | `M` | `0x4d` | `77` |  |
-| [`PRINT_DENSITY`](#print_density-command) | `C` | `0x43` | `67` | Seems unused. |
-| [`PRINT_DATA`](#print_data-command) | `D` | `0x44` | `68` | Defines the image that will be printed, see below for byte format. |
+| [`MEDIA_TYPE`](#media_type-command) | `M` | `0x4d` | `77` | ? |
+| [`PRINT_DENSITY`](#print_density-command) | `C` | `0x43` | `67` | ? |
+| [`PRINT_DATA`](#print_data-command) | `D` | `0x44` | `68` | Prints an image to the label. |
 | [`FORM_FEED`](#form_feed-command) | `E` | `0x45` | `69` | Follows after `PRINT_DATA`. |
 | [`STATUS`](#status-command) | `A` | `0x41` | `65` | Requests the status (?) |
 | [`END`](#end-command) | `Q` | `0x51` | `81` | End command. Each payload ends with this directive. |
@@ -191,7 +196,7 @@ PRINT_DATA[variable] = DIRECTIVE[2] + 01 02 + WIDTH[4] + HEIGHT[4] + IMAGE_DATA[
 
 ### Image format
 
-The printer accepts images in portrait direction, formatted as 1-bit monochrome and stored in little endian. To put it simply, it uses bits (`1` and `0`) to set each pixel, and since a byte contains 8 bits, the printer will require 4 bytes (4 * 8 = 32 pixels, which is the height of the printable area) to print a full line from top to the bottom.
+The printer expects labels in portrait direction, encoded as 1-bit monochrome images. To put it simply, it uses bits (`1` and `0`) to set each pixel, and since a byte contains 8 bits, the printer will require 4 bytes (4 * 8 = 32 pixels, which is the height of the printable area) to print a full line from top to the bottom. Each 4 bytes are big-endian on its own.
 
 ```
     8 bits                                                                   4 bytes = 32 bits (8 * 4) = 1 printing line
@@ -204,7 +209,7 @@ The printer accepts images in portrait direction, formatted as 1-bit monochrome 
     binary            binary            binary            binary               hex
 ```
 
-Since the format is in little endian, the first left-top pixel (X = 0, Y = 0) is inserted in the last byte of 4 bytes, and the biggest bit in that byte set.
+So, the first left-top pixel (X = 0, Y = 0) is inserted in the least significant byte, and the biggest bit in that set.
 
 ```
 0 0 0 0 0 0 0 0   0 0 0 0 0 0 0 0   0 0 0 0 0 0 0 0   1 0 0 0 0 0 0 0  ->  00 00 00 80  -> 1 pixel in [x = 0, y = 0]
@@ -216,7 +221,7 @@ Since the format is in little endian, the first left-top pixel (X = 0, Y = 0) is
 
 As explained above, line always take up 4 bytes, so the image width can be found by dividing the byte count to 4. And since the image height doesn't vary (labels are printed horizontally in this printer, from left to right) the image height is always 32 pixels.
 
-Each line is directly followed by another line (if any), so there is no additional separator between lines, and it is ordered sequantally, so the first 4 bytes in the image data will be the first line that will be printed out on the label.
+Each line is directly followed by another line (if any), so there is no additional separator between lines, and it is ordered sequentially, so the first 4 bytes in the image data will be the first line that will be printed out on the label.
 
 ### Payloads
 
@@ -270,7 +275,7 @@ CHUNK[1...501] = CHUNK_INDEX[1] + CHUNK_DATA[0...500]
 The last chunk must contain the [`MAGIC`](#magic-value) value appended end of the chunk.
 
 ```
-CHUNK[1...503] = CHUNK_INDEX[1] + CHUNK_DATA[0...500] + MAGIC[2]
+CHUNK[3...503] = CHUNK_INDEX[1] + CHUNK_DATA[0...500] + MAGIC[2]
 ```
 
 #### Set media type

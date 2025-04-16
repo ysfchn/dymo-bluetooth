@@ -39,7 +39,10 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.basedpyright]
+[tool.ruff]
+line-length = 110
+
+[tool.pyright]
 venvPath = "."
 venv = ".venv"
 reportDeprecated = "none"
