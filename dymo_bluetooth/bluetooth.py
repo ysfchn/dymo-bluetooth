@@ -49,7 +49,8 @@ def is_espressif(input_mac : str):
     mac_blocks = [
         "58:CF:79",
         # Confirmed in pull request #2
-        "DC:54:75"
+        "DC:54:75",
+        "34:85:18"
     ]
     check_mac = int(input_mac.replace(":", ""), base = 16)
     for mac in mac_blocks:
