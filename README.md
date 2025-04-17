@@ -6,8 +6,6 @@ I was not expecting to own a label printer, but after caming across to this onli
 
 ![](./assets/cover.jpg)
 
-_The image on the printed label shown in the picture can be found [here.](https://github.com/ysfchn/dymo-bluetooth/blob/main/assets/example_image.png)_
-
 <details>
 <summary>More about this printer model</summary>
 <br>
@@ -29,8 +27,10 @@ This project depends on [`bleak`](https://pypi.org/project/bleak/) for cross-pla
 ## Installation
 
 ```
-python -m pip install --upgrade "https://github.com/ysfchn/dymo-bluetooth/archive/refs/heads/main.zip"
+python -m pip install --upgrade dymo-bluetooth
 ```
+
+For `main` branch, you can use `https://github.com/ysfchn/dymo-bluetooth/archive/refs/heads/main.zip` as package name.
 
 Python 3.10 or up is targeted, but 3.9 should work too. It depends on;
 
@@ -41,7 +41,7 @@ Additionally, if `python-barcode` is installed (which is optional), it can be al
 
 ## Usage
 
-There is a CLI provided with the module to print images to the first found printer nearby.
+There is a CLI provided with the module to print images to the first found printer nearby. If looking for a test image, you can try [this.](https://github.com/ysfchn/dymo-bluetooth/blob/main/assets/example_image.png)_
 
 ```
 python -m dymo_bluetooth --help

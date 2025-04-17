@@ -85,7 +85,7 @@ def main():
     )
     args.add_argument(
         "--ensure-mac", 
-        default = 5, 
+        default = False, 
         action = "store_true",
         help = (
             "Also ensures the MAC address does match with the pre-defined MAC prefixes when "

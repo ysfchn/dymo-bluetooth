@@ -1,6 +1,6 @@
 [project]
 name = "dymo-bluetooth"
-version = "0.0.2"
+version = "0.1.0"
 authors = [{ name = "ysfchn" }]
 license.file = "LICENSE"
 readme = "README.md"
@@ -8,8 +8,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "License :: OSI Approved :: MIT License",
     "Development Status :: 5 - Production/Stable",
-    "Topic :: Printing",
-    "Private :: Do Not Upload"
+    "Topic :: Printing"
 ]
 dependencies = [
     "bleak~=0.22.2",
