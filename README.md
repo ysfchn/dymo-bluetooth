@@ -29,7 +29,7 @@ This project depends on [`bleak`](https://pypi.org/project/bleak/) for cross-pla
 ## Installation
 
 ```
-python -m pip install --upgrade https://github.com/ysfchn/dymo-bluetooth/archive/refs/heads/main.zip
+python -m pip install --upgrade "https://github.com/ysfchn/dymo-bluetooth/archive/refs/heads/main.zip"
 ```
 
 Python 3.10 or up is targeted, but 3.9 should work too. It depends on;
@@ -41,7 +41,7 @@ Additionally, if `python-barcode` is installed (which is optional), it can be al
 
 ## Usage
 
-There is a small CLI to print image files to a nearby printer.
+There is a CLI provided with the module to print images to the first found printer nearby.
 
 ```
 python -m dymo_bluetooth --help
@@ -63,17 +63,25 @@ async def main():
     # Images needs to be stretched by at least 2 times like
     # how its mobile app does, otherwise printer will render
     # the labels too narrow.
-    canvas = canvas.stretch_image(2)
+    canvas = canvas.stretch(2)
 
     # Get a list of printers.
     printers = await discover_printers()
 
-    # Get the first found printer and print the 
+    # Get the first discovered printer and print the 
     # constructed Canvas. Returns the print status.
     await printers[0].print(canvas)
 
 asyncio.run(main())
 ```
+
+## Notes
+
+Some things to note while using the printer:
+
+* The printer won't print anything if the lid is open, even if it may seem that it actually printed.
+* If it doesn't print, make sure that all four batteries hold high enough charge, not a single battery should be low.
+* If you hold the power button while the printer is on, it will automatically print its MAC address.
 
 ## License & Disclaimer
 
@@ -87,8 +95,8 @@ This program is not supported, sponsored, affiliated, approved, or endorsed in a
 
 This printer uses Bluetooth LE (GATT) to send labels & retrieve its status. It does uses this service UUIDs:
 
-| UUID | Used for |
-|:------:|:-------:|
+|  UUID  | Used for |
+|:------:|:--------:|
 | `be3dd650-2b3d-42f1-99c1-f0f749dd0678` | Service |
 | `be3dd651-2b3d-42f1-99c1-f0f749dd0678` | [Print request (write -> printer)](#print-request) |
 | `be3dd652-2b3d-42f1-99c1-f0f749dd0678` | [Print reply (notify <- printer)](#result) |
@@ -125,7 +133,7 @@ Below is the structure of each command that follows after its directive:
 
 #### `START` command
 
-Each payload starts with directive. This command follows with 4 constant bytes after its directive.
+Each payload starts with directive. This command follows with 4 constant bytes (`9A 02 00 00`) after its directive.
 
 ```
 START[6] = DIRECTIVE[2] + 9A 02 00 00
@@ -133,7 +141,7 @@ START[6] = DIRECTIVE[2] + 9A 02 00 00
 
 #### `MEDIA_TYPE` command
 
-This command follows with 1 byte containing a number of some type (?) to be set for the printer. It doesn't really seem to be used by this printer, but this command was found in its mobile app anyway.
+This command follows with 1 byte containing a number of some type (?) to be set for the printer. It doesn't really seem to be used by this printer, but this command was discovered in its mobile app anyway.
 
 When this number has set to anything, the printer should advertise this number when searching for Bluetooth devices nearby. (not tested) So I guess it was planned to be used for some sort of casette checking & changing casette type, so printer can hold this value even when its turned off.
 
@@ -292,12 +300,23 @@ This payload doesn't require chunking and can be sent with single Bluetooth tran
 
 Printer will notify on the [print reply UUID](#protocol), giving the status of the printing operation. First byte is always an ASCII escape character `1B` (in hexadecimal, or 27 in decimal), and second byte is the ASCII code point of the `R` character (`0x52` in hexadecimal, or 82 in decimal) that stands for the result. 
 
-Third byte represents the status code. The printer may be inconsistent when it comes to the status codes, see `Result` enum in the code for more details about available status codes and their (supposedly) meanings.
+Third byte represents the status code. The printer is inconsistent when it comes to the status codes, so we can't be always fully sure if it actually did print. But the printer has several status codes anyways for some specific situations.
 
 ```
 RESULT[3] = 1B 52 + STATUS[1]
 ```
 
-## Extras
+#### Status codes
 
-The printer will automatically print its MAC address if power button was pressed long.
+|  Value  |  Did print?  |  Meaning  |
+|:-------:|:-------------:|:----------|
+| `0` | Maybe* | Printing has completed. |
+| `1` | Yes | Printing has completed (or still ongoing?). |
+| `2` | No | Failed for an unknown reason. |
+| `3` | Yes | Printed but the battery is low, probably won't be able to print again with same batteries. |
+| `4` | No | Failed to print because the operation was cancelled. |
+| `5` | No | Failed for an unknown reason, like `2`. Don't really know when it does return that. |
+| `6` | No | Failed to print because the battery is low. |
+| `7` | No | Failed to print because casette was not inserted. On my tests, printer never sends this status, instead it will spin its gear even casette is not inserted and sends `0` instead. |
+
+\* It is a "maybe", because for some cases, printer tells it did print even when it actually didn't. (e.g. the casette was not inserted, or the lid is open)
