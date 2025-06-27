@@ -23,7 +23,7 @@
 import asyncio
 from io import BytesIO
 from pathlib import Path
-from sys import stderr
+from sys import stderr, platform
 from PIL import Image, ImageChops
 from bleak import BleakScanner, BleakClient
 from typing import List, TYPE_CHECKING
@@ -110,16 +110,20 @@ async def discover_printers(max_timeout: int = 5, ensure_mac: bool = False) -> L
         while True:
             # TODO: In some cases, advetisement data may be non-null, containing
             # additional metadata about printer state but it is not implemented yet.
-            for device, _ in scanner.discovered_devices_and_advertisement_data.values(): # noqa: E501
-                if (device.name or "") == f"Letratag {device.address.replace(':', '')}":
-                    if ensure_mac and (not is_espressif(device.address)):
-                        print(
-                            f"A possible printer is found, but its MAC {device.address} isn't whitelisted, " +
-                            "thus ignored. If it isn't right, either disable MAC checking or open a issue.",
-                            file = stderr
-                        )
-                        continue
-                    printers.append(Printer(device))
+            for device, _ in scanner.discovered_devices_and_advertisement_data.values():
+                has_valid_name = (device.name or "").startswith("Letratag ")
+                if (platform != "darwin") and has_valid_name:
+                    has_valid_name = (device.name or "").endswith(device.address.replace(':', ''))
+                if not has_valid_name:
+                    continue
+                if ensure_mac and (not is_espressif(device.address)):
+                    print(
+                        f"A possible printer is found, but its MAC {device.address} isn't whitelisted, " +
+                        "thus ignored. If it isn't right, either disable MAC checking or open a issue.",
+                        file = stderr
+                    )
+                    continue
+                printers.append(Printer(device))
             # Do we have any candidate printers? If so, return the found printers. 
             # Otherwise, wait for the next scans until we found any.
             if printers:

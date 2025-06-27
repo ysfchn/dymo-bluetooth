@@ -10,7 +10,7 @@ I was not expecting to own a label printer, but after caming across to this onli
 <summary>More about this printer model</summary>
 <br>
 
-This printer doesn't use inks, it instead writes on the labels with thermal. And obviously, it does require a label cartridge (or called "casette"). From what I've seen, all LetraTag branded label casettes have the same same shape and dimensions, so it is easy to get another if the casette that came with the printer runs out. There are different kind of labels (paper, plastic, metalic etc.) available, and all of them are self-adhesive. The casettes don't have an electronical part, which makes the printer to be able to use casettes manufactured by someone else.
+This printer doesn't use inks, it instead writes on the labels with thermal. And obviously, it does require a label cartridge (or called "casette"). From what I've seen, all LetraTag branded label casettes have the same shape and dimensions, so it is easy to get another if the casette that came with the printer runs out. There are different kind of labels (paper, plastic, metalic etc.) available, and all of them are self-adhesive. The casettes don't have an electronical part, which makes the printer to be able to use casettes manufactured by someone else.
 
 The label dimensions are 12 millimeter in height, however the printable area is just 32 pixels, so labels will have an very obvious white space even if all printable space is filled with black. The print resolution is 200 DPI and, as stated on the original website, it has a print speed of up to 7 millimeters per second. So unfortunately the print resolution is not perfect for everything, but still, it does its job, and in the end, I enjoyed playing around with this printer, even if it didn't have anything that extraordinary.
 
@@ -41,7 +41,7 @@ Additionally, if `python-barcode` is installed (which is optional), it can be al
 
 ## Usage
 
-There is a CLI provided with the module to print images to the first found printer nearby. If looking for a test image, you can try [this.](https://github.com/ysfchn/dymo-bluetooth/blob/main/assets/example_image.png)_
+There is a CLI provided with the module to print images to the first found printer nearby. If looking for a test image, you can try [this.](https://github.com/ysfchn/dymo-bluetooth/blob/main/assets/example_image.png)
 
 ```
 python -m dymo_bluetooth --help

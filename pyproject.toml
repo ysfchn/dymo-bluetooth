@@ -1,13 +1,17 @@
 [project]
 name = "dymo-bluetooth"
-version = "0.1.0"
+description = "Print labels on DYMO LT-200B over Bluetooth."
+version = "0.1.1"
 authors = [{ name = "ysfchn" }]
-license.file = "LICENSE"
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3.10",
-    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.9",
     "Development Status :: 5 - Production/Stable",
+    "Operating System :: OS Independent",
+    "Topic :: System :: Hardware",
     "Topic :: Printing"
 ]
 dependencies = [
@@ -15,7 +19,7 @@ dependencies = [
     "pillow~=11.0.0"
 ]
 optional-dependencies.full = ["python-barcode[images]~=0.15.1"]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 
 [project.urls]
 "GitHub" = "https://github.com/ysfchn/dymo-bluetooth"
