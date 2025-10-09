@@ -23,7 +23,7 @@
 from argparse import ArgumentParser, BooleanOptionalAction
 from pathlib import Path
 from typing import Literal, Union, cast
-from dymo_bluetooth.bluetooth import discover_printers, create_image
+from dymo_bluetooth.bluetooth import discover_printers, create_code_128, create_image
 import sys
 import asyncio
 import os
@@ -36,9 +36,13 @@ async def print_image(
     ensure_mac: bool,
     padding: int,
     reverse: bool,
-    is_preview: Union[None, Literal["large", "small"]]
+    is_preview: Union[None, Literal["large", "small"]],
+    barcode: str
 ):
-    canvas = create_image(input_file, dither = use_dither)
+    if barcode:
+        canvas = create_code_128(barcode)
+    else:
+        canvas = create_image(input_file, dither = use_dither)
     if stretch_factor != 1:
         canvas = canvas.stretch(factor = stretch_factor)
     if padding != 0:
@@ -81,7 +85,9 @@ def main():
             "Must be 32 pixels in height, otherwise it will be cropped out."
         ), 
         type = Path, 
-        metavar = "IMAGE"
+        metavar = "IMAGE",
+        nargs='?',
+        default=os.getcwd()
     )
     args.add_argument(
         "--ensure-mac", 
@@ -143,6 +149,21 @@ def main():
             "applied to it. The default is 'small', which is the recommended option."
         )
     )
+    barcode_writer_installed = False
+    try:
+        from barcode import Code128 # type: ignore
+        from barcode.writer import ImageWriter # type: ignore
+        barcode_writer_installed = True
+        args.add_argument(
+            "--barcode",
+            type = str,
+            help = (
+                "Create barcode from the passed data. When using this option, no image file "
+                "needs to be selected."
+            )
+        )
+    except ModuleNotFoundError:
+        pass
     parsed = args.parse_args()
     input_file = cast(Path, parsed.image).absolute()
     max_timeout = cast(int, parsed.timeout)
@@ -151,12 +172,13 @@ def main():
     ensure_mac = cast(bool, parsed.ensure_mac)
     padding = cast(int, parsed.padding)
     reverse = cast(bool, parsed.reverse)
+    barcode = cast(str, parsed.barcode) if barcode_writer_installed else None
     is_preview = cast(Union[None, Literal["large", "small"]], parsed.preview)
 
-    if not input_file.exists():
+    if not input_file.exists() and not barcode:
         print(f"Input file doesn't exists: {input_file.as_posix()}", file = sys.stderr)
         exit(1)
-    if input_file.is_dir():
+    if input_file.is_dir() and not barcode:
         print(f"Input file can't be a directory: {input_file.as_posix()}", file = sys.stderr)
         exit(1)
 
@@ -168,7 +190,8 @@ def main():
         ensure_mac,
         padding,
         reverse,
-        is_preview
+        is_preview,
+        barcode
     ))
 
 
