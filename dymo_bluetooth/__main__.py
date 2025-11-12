@@ -23,6 +23,7 @@
 from argparse import ArgumentParser, BooleanOptionalAction
 from pathlib import Path
 from typing import Literal, Union, cast
+from typing_extensions import Optional
 from dymo_bluetooth.bluetooth import discover_printers, create_code_128, create_image
 import sys
 import asyncio
@@ -37,7 +38,7 @@ async def print_image(
     padding: int,
     reverse: bool,
     is_preview: Union[None, Literal["large", "small"]],
-    barcode: str
+    barcode: Optional[str]
 ):
     if barcode:
         canvas = create_code_128(barcode)
@@ -66,6 +67,7 @@ async def print_image(
     print("Printing...", file = sys.stderr)
     result = await printer.print(canvas)
     print(f"Result: {result.name} ({result.value})", file = sys.stderr)
+    await printer.disconnect()
 
 
 def main():
@@ -82,7 +84,7 @@ def main():
         "image", 
         help = (
             "Image file to print. Can be any type of image that is supported by Pillow. "
-            "Must be 32 pixels in height, otherwise it will be cropped out."
+            "Must be 30 pixels in height, otherwise it will be cropped out."
         ), 
         type = Path, 
         metavar = "IMAGE",

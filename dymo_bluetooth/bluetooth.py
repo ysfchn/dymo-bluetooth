@@ -111,7 +111,7 @@ async def discover_printers(max_timeout: int = 5, ensure_mac: bool = False) -> L
             # TODO: In some cases, advetisement data may be non-null, containing
             # additional metadata about printer state but it is not implemented yet.
             for device, _ in scanner.discovered_devices_and_advertisement_data.values():
-                has_valid_name = (device.name or "").startswith("Letratag ")
+                has_valid_name = (device.name or "").startswith("Letratag")
                 if (platform != "darwin") and has_valid_name:
                     has_valid_name = (device.name or "").endswith(device.address.replace(':', ''))
                 if not has_valid_name:
@@ -151,20 +151,15 @@ def convert_image_to_canvas(
         mask = Image.new("1", output.size, color = 255)
         diff = ImageChops.difference(output, mask)
         output = output.crop(diff.getbbox(alpha_only = False))
-    # Shrink the image from the center if it exceeds the print height,
-    # or max printable width.
-    canvas_height = Canvas.BYTES_PER_LINE * 8
-    if (output.height > canvas_height):
-        start_y = int(output.height / 2) - int(canvas_height / 2)
-        output = output.crop(
-            (0, start_y, output.width, start_y + canvas_height)
-        )
-    elif (output.height < canvas_height):
-        raise ValueError("Image is too small, resizing not implemented.")
-    if (output.width) > Canvas.MAX_LENGTH:
-        raise ValueError("Image is too large, resizing not implemented.")
     # Convert image to pixel array.
     canvas = Canvas()
+    # Shrink the image from the center if it exceeds the print height,
+    # or max printable width.
+    if (output.height > canvas.height):
+        start_y = int(output.height / 2) - int(canvas.height / 2)
+        output = output.crop(
+            (0, start_y, output.width, start_y + canvas.height)
+        )
     for w in range(output.width):
         for h in range(output.height):
             pixel = output.getpixel((w, h, ))

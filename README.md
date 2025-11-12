@@ -12,7 +12,7 @@ I was not expecting to own a label printer, but after caming across to this onli
 
 This printer doesn't use inks, it instead writes on the labels with thermal. And obviously, it does require a label cartridge (or called "casette"). From what I've seen, all LetraTag branded label casettes have the same shape and dimensions, so it is easy to get another if the casette that came with the printer runs out. There are different kind of labels (paper, plastic, metalic etc.) available, and all of them are self-adhesive. The casettes don't have an electronical part, which makes the printer to be able to use casettes manufactured by someone else.
 
-The label dimensions are 12 millimeter in height, however the printable area is just 32 pixels, so labels will have an very obvious white space even if all printable space is filled with black. The print resolution is 200 DPI and, as stated on the original website, it has a print speed of up to 7 millimeters per second. So unfortunately the print resolution is not perfect for everything, but still, it does its job, and in the end, I enjoyed playing around with this printer, even if it didn't have anything that extraordinary.
+The label dimensions are 12 millimeter in height, however the printable area is just 30 pixels, so labels will have an very obvious white space even if all printable space is filled with black. The print resolution is 200 DPI and, as stated on the original website, it has a print speed of up to 7 millimeters per second. So unfortunately the print resolution is not perfect for everything, but still, it does its job, and in the end, I enjoyed playing around with this printer, even if it didn't have anything that extraordinary.
 
 </details>
 
@@ -191,12 +191,11 @@ This command defines the data of the image that will be printed to the label. It
 
 * Width of the image. This value consists of 4 bytes, in little-endian. Since the label is printed horizontally, it might be changed based on your input image, so continue reading about image format.
 
-* Height of the image. This value consists of 4 bytes, in little-endian. Since labels can only contain 32 pixels from top to the bottom, simply use 32 as a height, so in hexadecimal, that would be: `20 00 00 00`
+* Height of the image. This value consists of 4 bytes, in little-endian. Since label height is in 30 pixels (from top to the bottom), that would take up 4 byte space, so in hexadecimal, that would be: `20 00 00 00` (4 * 8 = 32)
 
 * Image data, see ["Image format"](#image-format).
 
 ```
-# Printer have fixed 32 pixel size
 HEIGHT[4] = 20 00 00 00
 
 PRINT_DATA[variable] = DIRECTIVE[2] + 01 02 + WIDTH[4] + HEIGHT[4] + IMAGE_DATA[4 * WIDTH]
@@ -227,7 +226,10 @@ So, the first left-top pixel (X = 0, Y = 0) is inserted in the least significant
    decimal           decimal           decimal           decimal
 ```
 
-As explained above, line always take up 4 bytes, so the image width can be found by dividing the byte count to 4. And since the image height doesn't vary (labels are printed horizontally in this printer, from left to right) the image height is always 32 pixels.
+As explained above, line always take up 4 bytes, so the image width can be found by dividing the byte count to 4. The image height is constant since labels are printed horizontally in this printer, from left to right.
+
+> [!WARNING]
+> Even though printer does require 4 pixels (= 32 pixels), the actual printable area is 30 pixels, so first row will be missed on the label. The first bit has already been skipped in this project, but keep this in mind if you are creating your own implementation.
 
 Each line is directly followed by another line (if any), so there is no additional separator between lines, and it is ordered sequentially, so the first 4 bytes in the image data will be the first line that will be printed out on the label.
 

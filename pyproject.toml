@@ -1,7 +1,7 @@
 [project]
 name = "dymo-bluetooth"
 description = "Print labels on DYMO LT-200B over Bluetooth."
-version = "0.1.1"
+version = "0.1.2"
 authors = [{ name = "ysfchn" }]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]

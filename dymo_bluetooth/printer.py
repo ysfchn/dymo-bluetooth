@@ -99,11 +99,12 @@ class Canvas:
 
     __slots__ = ("buffer", )
 
-    # Each line takes 4 bytes, equals to 32 pixels (1 byte = 8 bits).
-    BYTES_PER_LINE = 4
+    # Printer does require 4 bytes for each line, equaling 32 pixels, however
+    # the printer can actually print 30 pixels in height.
+    FIXED_EDGE_PIXELS = 30
 
-    # Maximum count of bytes that the image can extend into the fixed direction.
-    MAX_LENGTH = 1024
+    # Maximum count of pixels that the image can extend into the unfixed edge.
+    UNFIXED_EDGE_MAX_PIXELS = 8000
 
     def __init__(self) -> None:
         self.buffer = BytesIO()
@@ -116,13 +117,15 @@ class Canvas:
         self._raise_if_out_bounds(x, y)
 
         # Get the byte containing the pixel value of given coordinates.
-        x_offset = x * Canvas.BYTES_PER_LINE
-        y_offset = Canvas.BYTES_PER_LINE - 1 - math.floor(y / 8)
+        # We add 1 to Y here since printer expects the first pixel starting from second bit.
+        bytes_per_line = self._get_fixed_edge_size()
+        x_offset = x * bytes_per_line
+        y_offset = bytes_per_line - 1 - math.floor((y + 1) / 8)
         self.buffer.seek(x_offset + y_offset)
 
         # Check if there is a bit value in given line.
         value = (self.buffer.read(1) or b"\x00")[0]
-        is_black = bool(value & (1 << (7 - (y % 8))))
+        is_black = bool(value & (1 << (7 - ((y + 1) % 8))))
         return is_black
 
     def set_pixel(self, x: int, y: int, color: Literal[True, False, 0, 1]) -> None:
@@ -133,8 +136,10 @@ class Canvas:
         self._raise_if_out_bounds(x, y)
 
         # Get the byte containing the pixel value of given coordinates.
-        x_offset = x * Canvas.BYTES_PER_LINE
-        y_offset = Canvas.BYTES_PER_LINE - 1 - math.floor(y / 8)
+        # We add 1 to Y here since printer expects the first pixel starting from second bit.
+        bytes_per_line = self._get_fixed_edge_size()
+        x_offset = x * bytes_per_line
+        y_offset = bytes_per_line - 1 - math.floor((y + 1) / 8)
         self.buffer.seek(x_offset + y_offset)
 
         # Get the one of four slices in line in the given coordinates. Add the bit in
@@ -142,9 +147,9 @@ class Canvas:
         curr = self.buffer.read(1)
         value = (curr or b"\x00")[0]
         if color:
-            value = value | (1 << (7 - (y % 8)))
+            value = value | (1 << (7 - ((y + 1) % 8)))
         else:
-            value = value & ~(1 << (7 - (y % 8)))
+            value = value & ~(1 << (7 - ((y + 1) % 8)))
 
         # Change the current byte with modified one, if not exists, append a new one.
         self.buffer.seek(0 if not curr else -1, 1)
@@ -170,35 +175,51 @@ class Canvas:
         self.buffer.seek(0, SEEK_END)
         return self.buffer.tell()
 
-    def _get_unfixed_pixels(self):
-        return math.ceil(self._get_byte_size() / self.BYTES_PER_LINE)
+    def _get_unfixed_edge_px(self):
+        return math.ceil(self._get_byte_size() / self._get_fixed_edge_size())
 
-    def _get_fixed_pixels(self):
-        return self.BYTES_PER_LINE * 8
+    def _get_unfixed_edge_max_px(self):
+        return self.UNFIXED_EDGE_MAX_PIXELS
+
+    def _get_fixed_edge_px(self):
+        return self.FIXED_EDGE_PIXELS
+
+    def _get_fixed_edge_size(self):
+        return math.ceil(self.FIXED_EDGE_PIXELS / 8)
+
+    def is_in_bounds(self, x: int, y: int):
+        """
+        Checks if both coordinates is in bounds of printable area.
+        """
+        if (x < 0) or (y < 0):
+            return False
+        max_fixed = self._get_fixed_edge_px()
+        max_unfixed = self._get_unfixed_edge_max_px()
+        return not ((y >= max_fixed) or (x >= max_unfixed))
 
     def _raise_if_out_bounds(self, x: int, y: int):
-        if (x < 0) or (y < 0):
-            raise ValueError("Canvas positions can't be negative.")
-        bits = Canvas.BYTES_PER_LINE * 8
-        maxbits = Canvas.MAX_LENGTH * 8
-        if y >= bits:
-            raise ValueError(f"Canvas can't be or exceed {bits} pixels in height.")
-        elif x >= maxbits:
-            raise ValueError(f"Canvas can't be or exceed {maxbits} pixels in width.")
+        result = self.is_in_bounds(x, y)
+        if not result:
+            max_fixed = self._get_fixed_edge_px()
+            max_unfixed = self._get_unfixed_edge_max_px()
+            raise ValueError(
+                f"Given position is out of bounds (got X = {x} and Y = {y}, " +
+                f"but expected X < {max_unfixed} and Y < {max_fixed})"
+            )
 
     @property
     def height(self) -> int:
         """
         Gets the height of the image.
         """
-        return self._get_fixed_pixels()
+        return self._get_fixed_edge_px()
 
     @property
     def width(self) -> int:
         """
         Gets the width of the image.
         """
-        return self._get_unfixed_pixels()
+        return self._get_unfixed_edge_px()
 
     @property
     def size(self) -> Tuple[int, int]:
@@ -212,8 +233,9 @@ class Canvas:
         Gets the created image with added blank padding.
         """
         self.buffer.seek(0)
-        image = self.buffer.read()
-        return image + (b"\x00" * (self.buffer.tell() % self.BYTES_PER_LINE))
+        image = bytearray(self.buffer.read())
+        image.extend(bytes(self.buffer.tell() % self._get_fixed_edge_size()))
+        return bytes(image)
 
     def empty(self):
         """
@@ -257,12 +279,13 @@ class Canvas:
         """
         Returns a new Canvas with blank (= white) spacing added to both sides.
         """
+        bytes_per_line = self._get_fixed_edge_size()
         canv = Canvas()
         canv.buffer.seek(0)
-        canv.buffer.write(bytes(to_left * self.BYTES_PER_LINE))
+        canv.buffer.write(bytes(to_left * bytes_per_line))
         canv.buffer.write(self.get_image())
         canv.buffer.seek(0, SEEK_END)
-        canv.buffer.write(bytes(to_right * self.BYTES_PER_LINE))
+        canv.buffer.write(bytes(to_right * bytes_per_line))
         return canv
 
     def pad(self, until: int) -> "Canvas":
@@ -470,7 +493,9 @@ def command_print(
     payload.extend(DirectiveBuilder.print(
         canvas.get_image(), 
         canvas.width,
-        canvas.height, 
+        # Seems printer doesn't mind if it is either 30 (same as `canvas.height`)
+        # or 32 (4 bytes * 8 bits), but let's keep it in 32 anyway.
+        32,
         bits_per_pixel = 1, 
         alignment = 2
     ))
