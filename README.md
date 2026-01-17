@@ -70,7 +70,9 @@ async def main():
 
     # Get the first discovered printer and print the 
     # constructed Canvas. Returns the print status.
-    await printers[0].print(canvas)
+    printer = printers[0]
+    await printer.connect()
+    await printer.print(canvas)
 
 asyncio.run(main())
 ```
