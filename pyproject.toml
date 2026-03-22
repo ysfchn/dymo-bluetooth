@@ -15,7 +15,7 @@ classifiers = [
     "Topic :: Printing"
 ]
 dependencies = [
-    "bleak~=0.22.2",
+    "bleak~=1.1.1",
     "pillow~=11.0.0"
 ]
 optional-dependencies.full = ["python-barcode[images]~=0.15.1"]
