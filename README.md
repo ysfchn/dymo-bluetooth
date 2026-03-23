@@ -75,6 +75,12 @@ async def main():
 asyncio.run(main())
 ```
 
+The feature to generate images from a text input is not yet available, in the meantime, you can create your own images using other tools such as ImageMagick (which offers much flexibility than even if text printing were added to the library):
+
+```bash
+convert -background white -fill black -font DejaVu-Sans -pointsize 20 label:"Hello world" -filter point -resize x30 -gravity center -extent x30 -threshold 50% -type bilevel my_label.png
+```
+
 ## Notes
 
 Some things to note while using the printer:

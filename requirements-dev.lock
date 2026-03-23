@@ -12,7 +12,7 @@
 -e file:.
 async-timeout==4.0.3
     # via bleak
-bleak==0.22.2
+bleak==1.1.1
     # via dymo-bluetooth
 dbus-fast==2.22.1
     # via bleak
